@@ -1,0 +1,100 @@
+struct TexturedMaterial
+{
+	sampler2D diffuse;
+	sampler2D specular;
+	sampler2D normal;
+
+	float shininess;
+};
+
+struct ColoredMaterial
+{
+	vec3 color;
+	float shininess;
+};
+
+struct PointLight
+{
+	vec3 position;
+
+	float constant;
+	float linear;
+	float quadratic;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+
+struct DirectionalLight
+{
+	vec3 direction;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
+
+vec3 CalculateDiffuseColor(vec3 lightColor, vec3 lightDirection, vec3 normal)
+{
+	float diffusePercentage = max(dot(normal, lightDirection), 0.0);
+	
+	return diffusePercentage * lightColor;
+}
+
+vec3 CalculateSpecularColor(vec3 lightColor, vec3 lightDirection, vec3 normal, float shininess, vec3 viewDirection)
+{
+	vec3 halfwayDirection = normalize(lightDirection + viewDirection);
+	float specularPercentage = pow(max(dot(normal, halfwayDirection), 0.0), shininess);
+
+	return specularPercentage * lightColor;
+}
+
+vec3 CalculatePointLightColor(PointLight light, vec3 diffuseColor, vec3 specularColor, vec3 normal, vec3 objectPosition, vec3 viewDirection, float shininess)
+{
+	vec3 lightDirection = normalize(light.position - objectPosition);
+
+	// Ambient
+	vec3 ambient = light.ambient * diffuseColor;
+
+	// Diffuse
+	vec3 diffuse = CalculateDiffuseColor(light.diffuse, lightDirection, normal);
+
+	// Specular
+	vec3 specular = CalculateSpecularColor(light.specular, lightDirection, normal, shininess, viewDirection);
+
+	// Attenuation
+	float distanceToLight = length(light.position - objectPosition);
+	float attenuation = 1.0 / (light.constant + light.linear * distanceToLight + light.quadratic * (distanceToLight * distanceToLight));
+
+	// Apply attenuation
+	ambient *= attenuation;
+	diffuse *= attenuation;
+	specular *= attenuation;
+
+	// Apply object color
+	diffuse *= diffuseColor;
+	specular *= specularColor;
+
+	return ambient + diffuse + specular;
+}
+
+vec3 CalculateDirectionalLightColor(DirectionalLight light, vec3 diffuseColor, vec3 specularColor, vec3 normal, vec3 viewDirection, float shininess)
+{
+    vec3 lightDirection = normalize(-light.direction);
+
+	// Ambient
+	vec3 ambient = light.ambient * diffuseColor;
+    
+	// Diffuse
+    vec3 diffuse = CalculateDiffuseColor(light.diffuse, lightDirection, normal);
+
+    // Specular
+    vec3 specular = CalculateSpecularColor(light.specular, lightDirection, normal, shininess, viewDirection);
+
+    // Apply object color
+	diffuse *= diffuseColor;
+	specular *= specularColor;
+    
+    return ambient + diffuse + specular;
+}

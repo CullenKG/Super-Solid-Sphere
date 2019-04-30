@@ -1,0 +1,14 @@
+{
+	"Options":	[{
+			"SoundOn":	true
+		}, {
+			"Texture":	true
+		}, {
+			"VolumeOn":	false
+		}],
+	"CompletedLevels":	[{
+			"LevelOne":	true
+		}, {
+			"LevelTwo":	true
+		}]
+}
